@@ -13,8 +13,8 @@ import random
 
 class BlurDataset(Dataset):
 
-    def __init__(self, training=True):
-        self.root = '../Blur_dataset'
+    def __init__(self, path, training=True):
+        self.root = path
         if training:
             full_path = os.path.join(self.root)
             self.images = [os.path.join(full_path, img) for img in os.listdir(full_path) if img.endswith('.jpg')]
@@ -37,7 +37,7 @@ class BlurDataset(Dataset):
         img_path = self.images[idx]
         image = Image.open(img_path) #.convert('RGB')
         blur_type, blur_parameters = utils.blur_type_from_image_path(img_path)
-        blur_type = torch.tensor( blur_type, dtype=torch.int16 )
+        blur_type = torch.tensor( blur_type, dtype=torch.int32 )
         blur_parameters = torch.tensor( blur_parameters, dtype=torch.int32 )
 
         if self.transform:
@@ -70,7 +70,7 @@ def generate_blurred_data():
 
             # cropping
             w, h = img.size
-            if not w >= 128 and h >= 128: continue
+            if w <= 128 or h <= 128: continue
             img = functional.crop(img, 0, 0, 128, 128)  # top left height width
 
             # random blurring
