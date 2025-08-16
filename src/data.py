@@ -34,9 +34,9 @@ class BlurDataset(Dataset):
             idx = idx.tolist()
 
         img_path = self.images[idx]
-        image = Image.open(img_path).convert('RGB')
+        image = Image.open(img_path) #.convert('RGB')
         blur_type, blur_parameters = utils.blur_type_from_image_path(img_path)
-        blur_type = torch.tensor( blur_type, dtype=str )
+        blur_type = torch.tensor( blur_type, dtype=torch.int16 )
         blur_parameters = torch.tensor( blur_parameters, dtype=torch.int32 )
 
         if self.transform:
@@ -44,7 +44,7 @@ class BlurDataset(Dataset):
 
         return image, blur_type, blur_parameters
 
-def train_test_split(dataset, train=0.5, test=0.5):
+def train_test_split(dataset, train=0.5, test=0.5): # aggiungere validate?
     return torch.utils.data.random_split(dataset, [train, test])
 
 
@@ -70,11 +70,11 @@ def generate_blurred_data():
             kernel_size = random.randrange(5, 12, 2)
 
             if random_blur < 0.5:
-                blur_type = "GaussianBlur"
+                blur_type = 0 # Gaussian Blur
                 blur = transforms.GaussianBlur( kernel_size = kernel_size )
                 blurred_img = blur(img)
             else:
-                blur_type = "MotionBlur"
+                blur_type = 1 # Motion Blur
                 img_array = np.asarray(img)
                 blurred_img = apply_motion_blur(img_array, kernel_size, 90)
                 blurred_img = Image.fromarray(blurred_img)
