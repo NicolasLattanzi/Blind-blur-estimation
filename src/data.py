@@ -2,12 +2,12 @@ import torch
 from torch.utils.data import *
 from torchvision import transforms
 
+from PIL import Image
 import os
 import utils
 import cv2
 import numpy as np
 import random
-from PIL import Image
 
 
 class BlurDataset(Dataset):
@@ -67,7 +67,7 @@ def generate_blurred_data():
 
             img = Image.open(os.path.join(src_dir, filename)) #.convert('RGB')
             random_blur = random.random()
-            kernel_size = random.randint(5, 11)
+            kernel_size = random.randrange(5, 12, 2)
 
             if random_blur < 0.5:
                 blur_type = "GaussianBlur"
@@ -75,14 +75,16 @@ def generate_blurred_data():
                 blurred_img = blur(img)
             else:
                 blur_type = "MotionBlur"
-                blurred_img = apply_motion_blur(img, kernel_size, 90)
+                img_array = np.asarray(img)
+                blurred_img = apply_motion_blur(img_array, kernel_size, 90)
+                blurred_img = Image.fromarray(blurred_img)
 
             filename = filename.replace('-', '')
-        blurred_img.save(os.path.join(dst_dir, f'{blur_type}-{kernel_size}-{filename}'))
+            blurred_img.save(os.path.join(dst_dir, f'{blur_type}-{kernel_size}-{filename}'))
 
 
 #size - in pixels, size of motion blur
-#angel - in degrees, direction of motion blur
+#angle - in degrees, direction of motion blur
 def apply_motion_blur(image, size, angle):
     k = np.zeros((size, size), dtype=np.float32)
     k[ (size-1)// 2 , :] = np.ones(size, dtype=np.float32)
