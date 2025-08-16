@@ -4,6 +4,9 @@ from torchvision import transforms
 
 import os
 import utils
+import cv2
+import numpy as np
+import random
 from PIL import Image
 
 
@@ -45,7 +48,9 @@ def train_test_split(dataset, train=0.5, test=0.5):
     return torch.utils.data.random_split(dataset, [train, test])
 
 
+
 ############## GENERAZIONE DATA #####################################
+
 
 src_dir = '../BSDS500/train'
 dst_dir = '../Blur_dataset'
@@ -61,8 +66,26 @@ def generate_blurred_data():
         if filename.endswith(('.jpg', '.jpeg', '.png', '.bmp', '.tif', '.tiff')):
 
             img = Image.open(os.path.join(src_dir, filename)) #.convert('RGB')
-            blur = transforms.GaussianBlur( kernel_size = 11 ) # blur gaussiano
-            img_blur = blur(img)
+            random_blur = random.random()
+            kernel_size = random.randint(5, 11)
+
+            if random_blur < 0.5:
+                blur_type = "GaussianBlur"
+                blur = transforms.GaussianBlur( kernel_size = kernel_size )
+                blurred_img = blur(img)
+            else:
+                blur_type = "MotionBlur"
+                blurred_img = apply_motion_blur(img, kernel_size, 90)
 
             filename = filename.replace('-', '')
-            img_blur.save(os.path.join(dst_dir, '-gaussian-11-', filename))
+        blurred_img.save(os.path.join(dst_dir, f'{blur_type}-{kernel_size}-{filename}'))
+
+
+#size - in pixels, size of motion blur
+#angel - in degrees, direction of motion blur
+def apply_motion_blur(image, size, angle):
+    k = np.zeros((size, size), dtype=np.float32)
+    k[ (size-1)// 2 , :] = np.ones(size, dtype=np.float32)
+    k = cv2.warpAffine(k, cv2.getRotationMatrix2D( (size / 2 -0.5 , size / 2 -0.5 ) , angle, 1.0), (size, size) )  
+    k = k * ( 1.0 / np.sum(k) )        
+    return cv2.filter2D(image, -1, k) 
