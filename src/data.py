@@ -1,6 +1,7 @@
 import torch
 from torch.utils.data import *
 from torchvision import transforms
+from torchvision.transforms import functional
 
 from PIL import Image
 import os
@@ -66,9 +67,15 @@ def generate_blurred_data():
         if filename.endswith(('.jpg', '.jpeg', '.png', '.bmp', '.tif', '.tiff')):
 
             img = Image.open(os.path.join(src_dir, filename)) #.convert('RGB')
+
+            # cropping
+            w, h = img.size
+            if not w >= 128 and h >= 128: continue
+            img = functional.crop(img, 0, 0, 128, 128)  # top left height width
+
+            # random blurring
             random_blur = random.random()
             kernel_size = random.randrange(5, 12, 2)
-
             if random_blur < 0.5:
                 blur_type = 0 # Gaussian Blur
                 blur = transforms.GaussianBlur( kernel_size = kernel_size )
@@ -79,8 +86,9 @@ def generate_blurred_data():
                 blurred_img = apply_motion_blur(img_array, kernel_size, 90)
                 blurred_img = Image.fromarray(blurred_img)
 
+            # saving the image
             filename = filename.replace('-', '')
-            blurred_img.save(os.path.join(dst_dir, f'{blur_type}-{kernel_size}-{filename}'))
+            blurred_img.save( os.path.join(dst_dir, f'{blur_type}-{kernel_size}-{filename}') )
 
 
 #size - in pixels, size of motion blur
