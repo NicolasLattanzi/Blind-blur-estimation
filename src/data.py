@@ -4,6 +4,7 @@ from torchvision import transforms
 from torchvision.transforms import functional
 
 from PIL import Image
+from scipy.signal import convolve2d
 import os
 import utils
 import cv2
@@ -35,9 +36,9 @@ class BlurDataset(Dataset):
             idx = idx.tolist()
 
         img_path = self.images[idx]
-        image = Image.open(img_path) #.convert('RGB')
+        image = Image.open(img_path).convert('RGB')
         blur_type, blur_parameters = utils.blur_type_from_image_path(img_path)
-        blur_type = torch.tensor( blur_type, dtype=torch.int32 )
+        blur_type = torch.tensor( blur_type, dtype=torch.int64 )
         blur_parameters = torch.tensor( blur_parameters, dtype=torch.int32 )
 
         if self.transform:
@@ -66,7 +67,7 @@ def generate_blurred_data():
     for filename in os.listdir(src_dir):
         if filename.endswith(('.jpg', '.jpeg', '.png', '.bmp', '.tif', '.tiff')):
 
-            img = Image.open(os.path.join(src_dir, filename)) #.convert('RGB')
+            img = Image.open(os.path.join(src_dir, filename)).convert('RGB')
 
             # cropping
             w, h = img.size
@@ -99,3 +100,45 @@ def apply_motion_blur(image, size, angle):
     k = cv2.warpAffine(k, cv2.getRotationMatrix2D( (size / 2 -0.5 , size / 2 -0.5 ) , angle, 1.0), (size, size) )  
     k = k * ( 1.0 / np.sum(k) )        
     return cv2.filter2D(image, -1, k) 
+
+#radius - size of the disc kernel
+def apply_lens_blur(img, radius):
+    # Gamma correction: img^3
+    arr = np.array(img).astype(np.float32) / 255
+    gamma_img = np.power(arr, 3)
+    gamma_img = (gamma_img * 255).astype(np.uint8)
+    gamma_img = Image.fromarray(gamma_img)
+    
+    # Disc blur
+    bokeh = convolve_disc(gamma_img, radius)
+    bokeh_arr = np.array(bokeh).astype(np.float32) / 255
+    bokeh_arr = np.cbrt(bokeh_arr)
+    bokeh = Image.fromarray((bokeh_arr * 255).astype(np.uint8))
+    
+    blur_img = convolve_disc(img, radius)
+    
+    final = np.maximum(np.array(bokeh), np.array(blur_img)).astype(np.uint8)
+    return Image.fromarray(final)
+
+def disc_kernel(radius):
+    # Crea un kernel a forma di disco
+    size = 2*radius+1
+    Y, X = np.ogrid[:size, :size]
+    dist = (X - radius)**2 + (Y - radius)**2
+    mask = dist <= radius**2
+    kernel = np.zeros((size, size), dtype=np.float32)
+    kernel[mask] = 1
+    kernel /= np.sum(kernel)
+    return kernel
+
+def convolve_disc(image, radius):
+    arr = np.array(image)
+    kernel = disc_kernel(radius)
+    if arr.ndim == 3:  # Color image
+        channels = [convolve2d(arr[:,:,i], kernel, mode='same', boundary='symm') for i in range(3)]
+        arr_conv = np.stack(channels, axis=-1)
+    else:  # Grayscale
+        arr_conv = convolve2d(arr, kernel, mode='same', boundary='symm')
+    arr_conv = np.clip(arr_conv, 0, 255).astype(np.uint8)
+    return Image.fromarray(arr_conv)
+

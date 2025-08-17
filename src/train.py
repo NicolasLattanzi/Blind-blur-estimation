@@ -53,6 +53,7 @@ for epoch in range(num_epochs):
         # printing error every X batch
         if (i + 1) % 100 == 0:
             print(f"Epoch [{epoch+1}/{num_epochs}], Step [{i+1}/{train_size}], Loss: {loss.item():.4f}")
+        if (i == 2): break
 
     avg_train_loss = train_loss / train_size
     print(f"Epoch [{epoch+1}/{num_epochs}] training completed. Average Loss: {avg_train_loss:.4f}")

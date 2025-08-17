@@ -2,3 +2,4 @@ python enviroment version 3.12.11
 
 conda install -c pytorch pytorch torchvision
 conda install -c menpo opencv
+conda install scipy
