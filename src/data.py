@@ -71,21 +71,34 @@ def generate_blurred_data():
 
             # cropping
             w, h = img.size
-            if w <= 128 or h <= 128: continue
-            img = functional.crop(img, 0, 0, 128, 128)  # top left height width
+            #scelta randomica della dimensione del crop
+            rnd=random.randint(0,3)
+            if rnd==0:  a=64
+            if rnd==1:  a=96
+            else:       a=128
+
+            if w <= a or h <= a: continue
+            #scelta randomica della zona dell'immagine per il crop
+            rnd_left=random.randint(0, w - a)
+            rnd_top=random.randint(0, h - a)
+            img=functional.crop(img,rnd_top,rnd_left,a,a)   # top left height width
 
             # random blurring
-            random_blur = random.random()
+            random_blur = int(random.random()*3)
             kernel_size = random.randrange(5, 12, 2)
-            if random_blur < 0.5:
+            if random_blur ==0:
                 blur_type = 0 # Gaussian Blur
                 blur = transforms.GaussianBlur( kernel_size = kernel_size )
                 blurred_img = blur(img)
-            else:
-                blur_type = 1 # Motion Blur
+            if random_blur ==1:
+                blur_type == 1 # Motion Blur
                 img_array = np.asarray(img)
                 blurred_img = apply_motion_blur(img_array, kernel_size, 90)
                 blurred_img = Image.fromarray(blurred_img)
+            else :
+                #qui aggiungere il terzo blur che non ho capito se è pronto o no 
+                b=10 #giusto per non darmi errore nell'else
+            
 
             # saving the image
             filename = filename.replace('-', '')
