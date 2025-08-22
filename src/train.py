@@ -7,7 +7,7 @@ import data
 ###### hyper parameters ########
 
 batch_size = 16
-num_epochs = 2
+num_epochs = 8
 learning_rate = 0.001
 
 ###############################
@@ -35,7 +35,7 @@ for epoch in range(num_epochs):
     model.train()
     train_loss = 0.0
     print(f'###\t\t  starting epoch n.{epoch+1}  \t\t###\n')
-    for i, (images, blur_types, blur_parameters) in enumerate(train_loader):
+    for i, (images, blur_types, _, _) in enumerate(train_loader):
         images = images.to(device)
         blur_types = blur_types.to(device)
 
@@ -51,9 +51,11 @@ for epoch in range(num_epochs):
         train_loss += loss.item()
 
         # printing error every X batch
-        if (i + 1) % 100 == 0:
+        if (i + 1) % 50 == 0:
             print(f"Epoch [{epoch+1}/{num_epochs}], Step [{i+1}/{train_size}], Loss: {loss.item():.4f}")
-        if (i == 2): break
+        #if (i == 2): break
 
     avg_train_loss = train_loss / train_size
     print(f"Epoch [{epoch+1}/{num_epochs}] training completed. Average Loss: {avg_train_loss:.4f}")
+
+torch.save(model, 'models/resnet18.pth')

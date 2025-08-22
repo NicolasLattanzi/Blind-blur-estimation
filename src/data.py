@@ -40,11 +40,12 @@ class BlurDataset(Dataset):
         blur_type, blur_parameters = utils.blur_type_from_image_path(img_path)
         blur_type = torch.tensor( blur_type, dtype=torch.int64 )
         blur_parameters = torch.tensor( blur_parameters, dtype=torch.int32 )
+        foo = torch.tensor( 1, dtype=torch.int32 )
 
         if self.transform:
             image = self.transform(image)
 
-        return image, blur_type, blur_parameters
+        return image, blur_type, blur_parameters, foo
 
 def train_test_split(dataset, train=0.5, test=0.5): # aggiungere validate?
     return torch.utils.data.random_split(dataset, [train, test])
@@ -97,10 +98,8 @@ def generate_blurred_data():
                 blurred_img = apply_motion_blur(img_array, kernel_size, 90)
                 blurred_img = Image.fromarray(blurred_img)
             else :
-                #qui aggiungere il terzo blur che non ho capito se è pronto o no 
-                blur_type = 2
+                blur_type = 2 # Lens (Defocus) Blur
                 blurred_img = apply_lens_blur(img, kernel_size)
-                # ps: il terzo blur è il più difficile, quindi non so se funziona, chi vivrà vedrà
             
 
             # saving the image
