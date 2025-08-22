@@ -1,5 +1,5 @@
 # dizionario dei tipi, da usare visto che non esistono tensori stringhe
-blur_types = {0: "Gaussian Blur", 1: "Motion Blur"}
+blur_types = {0: "Gaussian Blur", 1: "Motion Blur", 2: "Defocus Blur"}
 
 
 # estrazione informazioni blur dal path/nome dell'immagine

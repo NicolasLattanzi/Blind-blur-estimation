@@ -5,7 +5,7 @@ from torchvision.models import resnet18, ResNet18_Weights
 
 def build_resnet():
     model = resnet18(weights = ResNet18_Weights.DEFAULT)
-    OUTPUTS = 2
+    OUTPUTS = 3
     model.fc = nn.Linear(model.fc.in_features, OUTPUTS)
 
     return model
@@ -22,10 +22,10 @@ class GRNN(nn.Module):
         # x shape: (batch_size, 3)
         # train_inputs shape: (N, 3)
         # risultato: (batch_size, N)
-        diff = x.unsqueeze(1) - self.train_inputs.unsqueeze(0)
+        diff = x.unsqueeze(1) - self.train_inputs.unsqueeze(0) #forma: batch_size, N, 3
         dist_sq = torch.sum(diff**2, dim=2)
 
-        # Calcola pesi gaussiani
+        # Calcola pesi (con formula gaussiana)
         weights = torch.exp(-dist_sq / (2 * self.spread**2))
 
         # Calcola somma pesata degli output dei training

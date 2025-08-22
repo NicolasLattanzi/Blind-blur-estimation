@@ -14,8 +14,8 @@ import random
 
 class BlurDataset(Dataset):
 
-    def __init__(self, path, training=True):
-        self.root = path
+    def __init__(self, training=True):
+        self.root = '../Blur_dataset'
         if training:
             full_path = os.path.join(self.root)
             self.images = [os.path.join(full_path, img) for img in os.listdir(full_path) if img.endswith('.jpg')]
@@ -54,7 +54,6 @@ def train_test_split(dataset, train=0.5, test=0.5): # aggiungere validate?
 ############## GENERAZIONE DATA #####################################
 
 folders=['../BSDS500/train', '../DIV2K_train_HR']
-images=[]
 dst_dir = '../Blur_dataset'
 
 # (adesso non fa ancora tutto, lo implemento un po alla volta)
@@ -65,13 +64,11 @@ def generate_blurred_data():
     # tipi di blur: gaussian, bicubic, motion blur, defocus
 
     for folder_name in folders:
-        for img in os.listdir(folder_name):
-             if img.lower().endswith(('.jpg', '.jpeg', '.png', '.bmp', '.tif', '.tiff')):
-                 images.append(os.path.join(folder_name, img))
-
-    for image in images:
+        for filename in os.listdir(folder_name):
+            if not filename.endswith(('.jpg', '.jpeg', '.png', '.bmp', '.tif', '.tiff')):
+                continue
         
-            img = Image.open(image).convert('RGB')
+            img = Image.open(os.path.join(folder_name, filename)).convert('RGB')
 
             # cropping
             w, h = img.size
@@ -90,18 +87,20 @@ def generate_blurred_data():
             # random blurring
             random_blur = int(random.random()*3)
             kernel_size = random.randrange(5, 12, 2)
-            if random_blur ==0:
+            if random_blur == 0:
                 blur_type = 0 # Gaussian Blur
                 blur = transforms.GaussianBlur( kernel_size = kernel_size )
                 blurred_img = blur(img)
-            if random_blur ==1:
-                blur_type == 1 # Motion Blur
+            elif random_blur == 1:
+                blur_type = 1 # Motion Blur
                 img_array = np.asarray(img)
                 blurred_img = apply_motion_blur(img_array, kernel_size, 90)
                 blurred_img = Image.fromarray(blurred_img)
             else :
                 #qui aggiungere il terzo blur che non ho capito se è pronto o no 
-                b=10 #giusto per non darmi errore nell'else
+                blur_type = 2
+                blurred_img = apply_lens_blur(img, kernel_size)
+                # ps: il terzo blur è il più difficile, quindi non so se funziona, chi vivrà vedrà
             
 
             # saving the image

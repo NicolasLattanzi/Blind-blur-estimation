@@ -12,7 +12,7 @@ learning_rate = 0.001
 
 ###############################
 
-dataset = data.BlurDataset('../Blur_dataset')
+dataset = data.BlurDataset()
 train_dataset, test_dataset = data.train_test_split(dataset)
 train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=True)
