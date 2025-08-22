@@ -13,9 +13,11 @@ def build_resnet():
 
 class GRNN(nn.Module):
     def __init__(self, train_data, train_labels, spread=1.0):
+        super(GRNN, self).__init__()
         self.spread = spread
-        self.classif_data = torch.tensor(train_data)  # tensore (N, 3)
-        self.outputs = torch.tensor(train_labels)     # tensore (N, 2)
+        self.classif_data = torch.tensor(train_data, dtype=torch.float32)
+        self.outputs = torch.tensor(train_labels, dtype=torch.float32)
+
 
     def forward(self, x):
         # Calcola distanze al quadrato tra x e tutti i dati di training
