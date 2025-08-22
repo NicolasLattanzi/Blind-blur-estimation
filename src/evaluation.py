@@ -23,24 +23,25 @@ GRNN = torch.load('models/GRNN.pth')
 # checking if gpu is available, otherwise cpu is used
 device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 resnet18 = resnet18.to(device)
-GRNN = GRNN.to(device)
 
 print('//  starting resnet + GRNN testing  //')
 
 loss_function = torch.nn.MSELoss()
 resnet18.eval()
-GRNN.eval()
 
 for epoch in range(num_epochs):
     train_loss = 0.0
     print(f'###\t\t  starting epoch n.{epoch+1}  \t\t###\n')
-    for i, (images, blur_types, blur_parameters) in enumerate(test_loader):
+    for i, (images, blur_types, param1, param2) in enumerate(test_loader):
         images = images.to(device)
         blur_types = blur_types.to(device)
-        blur_parameters = blur_parameters.to(device)
+        param1 = param1.to(device)
+        param2 = param2.to(device)
 
-        class_outputs = resnet18(images) # classification
-        final_outputs = GRNN(class_outputs) # regression
+        classif_outputs = resnet18(images) # classification
+        final_outputs = GRNN.forward(classif_outputs) # regression
+        print(final_outputs)
+        break
         loss = loss_function(final_outputs, blur_types)
 
         train_loss += loss.item()
