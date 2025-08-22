@@ -53,8 +53,8 @@ def train_test_split(dataset, train=0.5, test=0.5): # aggiungere validate?
 
 ############## GENERAZIONE DATA #####################################
 
-
-src_dir = '../BSDS500/train'
+folders=['../BSDS500/train', '../DIV2K_train_HR']
+images=[]
 dst_dir = '../Blur_dataset'
 
 # (adesso non fa ancora tutto, lo implemento un po alla volta)
@@ -64,10 +64,14 @@ def generate_blurred_data():
     # nome dell'immagine.
     # tipi di blur: gaussian, bicubic, motion blur, defocus
 
-    for filename in os.listdir(src_dir):
-        if filename.endswith(('.jpg', '.jpeg', '.png', '.bmp', '.tif', '.tiff')):
+    for folder_name in folders:
+        for img in os.listdir(folder_name):
+             if img.lower().endswith(('.jpg', '.jpeg', '.png', '.bmp', '.tif', '.tiff')):
+                 images.append(os.path.join(folder_name, img))
 
-            img = Image.open(os.path.join(src_dir, filename)).convert('RGB')
+    for image in images:
+        
+            img = Image.open(image).convert('RGB')
 
             # cropping
             w, h = img.size
