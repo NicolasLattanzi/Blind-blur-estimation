@@ -36,13 +36,14 @@ for epoch in range(num_epochs):
     train_loss = 0.0
     print(f'###\t\t  starting epoch n.{epoch+1}  \t\t###\n')
     for i, (images, blur_types, _, _) in enumerate(train_loader):
+        images = dataset.augment_data(images)
         images = images.to(device)
         blur_types = blur_types.to(device)
 
         # forward step
         outputs = model(images)
         loss = loss_function(outputs, blur_types)
-        
+
         # backward step
         optimizer.zero_grad()
         loss.backward()

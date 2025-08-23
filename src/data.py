@@ -44,23 +44,44 @@ class BlurDataset(Dataset):
             image = self.transform(image)
 
         return image, blur_type, blur_parameters, foo
+    
+    # batch di immagini in input
+    def augment_data(self, images):
+        augmentation = transforms.Compose([
+            transforms.RandomHorizontalFlip(),
+            transforms.RandomRotation(degrees=(-10, 10)),
+            transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1),
+        ])
+        outputs = []
+        for image in images.item():
+            image = augmentation(image)
+            outputs.append(image)
+        
+        return torch.tensor(outputs)
 
-def train_test_split(dataset, train=0.5, test=0.5): # aggiungere validate?
+
+def train_test_split(dataset, train=0.5, test=0.5):
     return torch.utils.data.random_split(dataset, [train, test])
 
 
 
-############## GENERAZIONE DATA #####################################
-
-folders=['../BSDS500/train', '../DIV2K_train_HR']
-dst_dir = '../Blur_dataset'
+################# GENERAZIONE DATA #####################################
 
 
-def generate_blurred_data():
+def generate_blurred_data(validation = False):
     # a partire dal dataset iniziale, estraiamo sezioni di immagini (da 64x64 pixel a
     # 128x128) e applichiamo sopra un blur casuale. Le informazioni di blur sono salvate nel
     # nome dell'immagine.
     # tipi di blur: gaussian, motion blur, defocus
+
+    folders = ['../BSDS500/train', '../BSDS500/test', '../DIV2K_train_HR']
+    dst_dir = '../Blur_dataset'
+    if validation:
+        folders = ['../BSDS500/val', '../DIV2K_valid_HR']
+        dst_dir = '../Blur_val_dataset'
+    
+    if not os.path.exists(dst_dir):
+        os.makedirs(dst_dir)
 
     # tolgo tutti i file precedenti, così non ammucchiamo vecchi dataset con nuovi
     for filename in os.listdir(dst_dir):
@@ -78,12 +99,11 @@ def generate_blurred_data():
         for filename in os.listdir(folder_name):
             if not filename.endswith(('.jpg', '.jpeg', '.png', '.bmp', '.tif', '.tiff')):
                 continue
-        
+
             img = Image.open(os.path.join(folder_name, filename)).convert('RGB')
 
-            # cropping
             w, h = img.size
-            #scelta randomica della dimensione del crop
+            # dimensione del crop
             sizes = [64, 96, 128]
             for size in sizes:
                 if w <= size or h <= size: continue
@@ -91,7 +111,7 @@ def generate_blurred_data():
                 #scelta randomica della zona dell'immagine per il crop
                 rnd_left = random.randint(0, w - size)
                 rnd_top = random.randint(0, h - size)
-                img=functional.crop(img,rnd_top,rnd_left,size,size)   # top left height width
+                crop_img = functional.crop(img,rnd_top,rnd_left,size,size)   # top left height width
 
                 # random blurring
                 random_blur = int(random.random()*3)
@@ -99,15 +119,15 @@ def generate_blurred_data():
                 if random_blur == 0:
                     blur_type = 0 # Gaussian Blur
                     blur = transforms.GaussianBlur( kernel_size = kernel_size )
-                    blurred_img = blur(img)
+                    blurred_img = blur(crop_img)
                 elif random_blur == 1:
                     blur_type = 1 # Motion Blur
-                    img_array = np.asarray(img)
+                    img_array = np.asarray(crop_img)
                     blurred_img = apply_motion_blur(img_array, kernel_size, 90)
                     blurred_img = Image.fromarray(blurred_img)
                 else :
                     blur_type = 2 # Lens (Defocus) Blur
-                    blurred_img = apply_lens_blur(img, kernel_size)
+                    blurred_img = apply_lens_blur(crop_img, kernel_size)
                 
 
                 # saving the image
@@ -167,4 +187,3 @@ def convolve_disc(image, radius):
         arr_conv = convolve2d(arr, kernel, mode='same', boundary='symm')
     arr_conv = np.clip(arr_conv, 0, 255).astype(np.uint8)
     return Image.fromarray(arr_conv)
-
