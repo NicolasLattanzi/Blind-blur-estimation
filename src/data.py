@@ -5,11 +5,9 @@ from torchvision.transforms import functional
 
 from PIL import Image
 from scipy.signal import convolve2d
-import os
-import utils
-import cv2
+import os, shutil, cv2, random
 import numpy as np
-import random
+import utils
 
 
 class BlurDataset(Dataset):
@@ -57,13 +55,25 @@ def train_test_split(dataset, train=0.5, test=0.5): # aggiungere validate?
 folders=['../BSDS500/train', '../DIV2K_train_HR']
 dst_dir = '../Blur_dataset'
 
-# (adesso non fa ancora tutto, lo implemento un po alla volta)
+
 def generate_blurred_data():
     # a partire dal dataset iniziale, estraiamo sezioni di immagini (da 64x64 pixel a
     # 128x128) e applichiamo sopra un blur casuale. Le informazioni di blur sono salvate nel
     # nome dell'immagine.
-    # tipi di blur: gaussian, bicubic, motion blur, defocus
+    # tipi di blur: gaussian, motion blur, defocus
 
+    # tolgo tutti i file precedenti, così non ammucchiamo vecchi dataset con nuovi
+    for filename in os.listdir(dst_dir):
+        file_path = os.path.join(dst_dir, filename)
+        try:
+            if os.path.isfile(file_path) or os.path.islink(file_path):
+                os.unlink(file_path)
+            elif os.path.isdir(file_path):
+                shutil.rmtree(file_path)
+        except Exception as e:
+            print('Failed to delete %s. Reason: %s' % (file_path, e))
+
+    # main loop
     for folder_name in folders:
         for filename in os.listdir(folder_name):
             if not filename.endswith(('.jpg', '.jpeg', '.png', '.bmp', '.tif', '.tiff')):
@@ -74,38 +84,39 @@ def generate_blurred_data():
             # cropping
             w, h = img.size
             #scelta randomica della dimensione del crop
-            rnd=random.randint(0,3)
-            if rnd==0:  a=64
-            if rnd==1:  a=96
-            else:       a=128
+            sizes = [64, 96, 128]
+            for size in sizes:
+                if w <= size or h <= size: continue
 
-            if w <= a or h <= a: continue
-            #scelta randomica della zona dell'immagine per il crop
-            rnd_left=random.randint(0, w - a)
-            rnd_top=random.randint(0, h - a)
-            img=functional.crop(img,rnd_top,rnd_left,a,a)   # top left height width
+                #scelta randomica della zona dell'immagine per il crop
+                rnd_left = random.randint(0, w - size)
+                rnd_top = random.randint(0, h - size)
+                img=functional.crop(img,rnd_top,rnd_left,size,size)   # top left height width
 
-            # random blurring
-            random_blur = int(random.random()*3)
-            kernel_size = random.randrange(5, 12, 2)
-            if random_blur == 0:
-                blur_type = 0 # Gaussian Blur
-                blur = transforms.GaussianBlur( kernel_size = kernel_size )
-                blurred_img = blur(img)
-            elif random_blur == 1:
-                blur_type = 1 # Motion Blur
-                img_array = np.asarray(img)
-                blurred_img = apply_motion_blur(img_array, kernel_size, 90)
-                blurred_img = Image.fromarray(blurred_img)
-            else :
-                blur_type = 2 # Lens (Defocus) Blur
-                blurred_img = apply_lens_blur(img, kernel_size)
-            
+                # random blurring
+                random_blur = int(random.random()*3)
+                kernel_size = random.randrange(5, 12, 2)
+                if random_blur == 0:
+                    blur_type = 0 # Gaussian Blur
+                    blur = transforms.GaussianBlur( kernel_size = kernel_size )
+                    blurred_img = blur(img)
+                elif random_blur == 1:
+                    blur_type = 1 # Motion Blur
+                    img_array = np.asarray(img)
+                    blurred_img = apply_motion_blur(img_array, kernel_size, 90)
+                    blurred_img = Image.fromarray(blurred_img)
+                else :
+                    blur_type = 2 # Lens (Defocus) Blur
+                    blurred_img = apply_lens_blur(img, kernel_size)
+                
 
-            # saving the image
-            filename = filename.replace('-', '')
-            blurred_img.save( os.path.join(dst_dir, f'{blur_type}-{kernel_size}-{filename}') )
+                # saving the image
+                filename = filename.replace('-', '')
+                blurred_img.save( os.path.join(dst_dir, f'{blur_type}-{kernel_size}-{filename}') )
 
+
+
+#################################### BLUR FUNCTIONS ###################################
 
 #size - in pixels, size of motion blur
 #angle - in degrees, direction of motion blur
