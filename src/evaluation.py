@@ -53,4 +53,4 @@ for epoch in range(num_epochs):
         #if (i == 2): break
 
     avg_train_loss = train_loss / train_size
-    print(f"Epoch [{epoch+1}/{num_epochs}] training completed. Average Loss: {avg_train_loss:.4f}")
+    print(f"Epoch [{epoch+1}/{num_epochs}] evaluation completed. Average Loss: {avg_train_loss:.4f}")

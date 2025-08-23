@@ -11,12 +11,10 @@ batch_size = 1
 ###############################
 
 dataset = data.BlurDataset()
-train_dataset, test_dataset = data.train_test_split(dataset)
-train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=True)
+train_dataset, test_dataset = data.train_test_split(dataset, 1, 0)
+data_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 
-train_size = len(train_loader)
-test_size = len(test_loader)
+data_size = len(data_loader)
 
 resnet18 = torch.load('models/resnet18.pth')
 # checking if gpu is available, otherwise cpu is used
@@ -31,7 +29,7 @@ GRNN_LABELS = []
 resnet18.eval()
 # con la resnet18 caricata, scorro tutte le immagini di train e registro gli output in GRNN_TRAIN_DATA e GRNN_LABELS
 # le liste verranno usate per il mega hidden layer del modello
-for i, (images, _, param1, param2) in enumerate(train_loader):
+for i, (images, _, param1, param2) in enumerate(data_loader):
     images = images.to(device)
     param1 = param1.to(device)
     param2 = param2.to(device)
