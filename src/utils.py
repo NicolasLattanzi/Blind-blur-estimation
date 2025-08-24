@@ -7,6 +7,7 @@ def blur_type_from_image_path(path :str):
     filename = path.split('/')[-1]
     variables = filename.split('-')
     blur_type = int(variables[0])
-    kernel_size = int(variables[1])
+    blur_size = int(variables[1])
+    blur_param = int(variables[2])
 
-    return [blur_type, kernel_size]
+    return [blur_type, blur_size, blur_param]

@@ -4,6 +4,15 @@ from torch.utils.data import DataLoader
 import network
 import data
 
+'''
+parametri di blur che la GRNN deve trovare per ogni blur:
+
+Gaussian blur	|  Deviazione standard sigma
+Motion blur	    |  Lunghezza di movimento M, angolo ω
+Defocus blur	|  Raggio del disco di sfocatura r
+
+'''
+
 ###### hyper parameters ########
 
 batch_size = 1

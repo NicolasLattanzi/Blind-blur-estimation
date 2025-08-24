@@ -34,15 +34,15 @@ class BlurDataset(Dataset):
 
         img_path = self.images[idx]
         image = Image.open(img_path).convert('RGB')
-        blur_type, blur_parameters = utils.blur_type_from_image_path(img_path)
+        blur_type, blur_param1, blur_param2 = utils.blur_type_from_image_path(img_path)
         blur_type = torch.tensor( blur_type, dtype=torch.int64 )
-        blur_parameters = torch.tensor( blur_parameters, dtype=torch.int32 )
-        foo = torch.tensor( 1, dtype=torch.int32 )
+        blur_param1 = torch.tensor( blur_param1, dtype=torch.int32 )
+        blur_param2 = torch.tensor( blur_param2, dtype=torch.int32 )
 
         if self.transform:
             image = self.transform(image)
 
-        return image, blur_type, blur_parameters, foo
+        return image, blur_type, blur_param1, blur_param2
     
     # batch di immagini in input
     def augment_data(self, images):
@@ -52,11 +52,13 @@ class BlurDataset(Dataset):
             transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1),
         ])
         outputs = []
-        for image in images.item():
-            image = augmentation(image)
-            outputs.append(image)
-        
-        return torch.tensor(outputs)
+        for img_tensor in images:
+            img = transforms.ToPILImage()(img_tensor.cpu())
+            img = augmentation(img)
+            img = transforms.ToTensor()(img)
+            outputs.append(img)
+
+        return torch.stack(outputs)
 
 
 def train_test_split(dataset, train=0.5, test=0.5):
@@ -114,24 +116,28 @@ def generate_blurred_data(validation = False):
 
                 # random blurring
                 random_blur = int(random.random()*3)
-                kernel_size = random.randrange(5, 12, 2)
+                blur_param_1 = random.randrange(5, 12, 2) # kernel size
+                blur_param_2 = 0 # foo
+                
                 if random_blur == 0:
                     blur_type = 0 # Gaussian Blur
-                    blur = transforms.GaussianBlur( kernel_size = kernel_size )
+                    blur = transforms.GaussianBlur( kernel_size = blur_param_1 )
                     blurred_img = blur(crop_img)
                 elif random_blur == 1:
                     blur_type = 1 # Motion Blur
+                    blur_param_1 = random.randrange(16, size)  # blur size
+                    blur_param_2 = random.randrange(-360, 360) # motion angle
                     img_array = np.asarray(crop_img)
-                    blurred_img = apply_motion_blur(img_array, kernel_size, 90)
+                    blurred_img = apply_motion_blur(img_array, size = blur_param_1, angle = blur_param_2)
                     blurred_img = Image.fromarray(blurred_img)
                 else :
                     blur_type = 2 # Lens (Defocus) Blur
-                    blurred_img = apply_lens_blur(crop_img, kernel_size)
+                    blurred_img = apply_lens_blur(crop_img, blur_param_1)
                 
 
                 # saving the image
                 filename = filename.replace('-', '')
-                blurred_img.save( os.path.join(dst_dir, f'{blur_type}-{kernel_size}-{filename}') )
+                blurred_img.save( os.path.join(dst_dir, f'{blur_type}-{blur_param_1}-{blur_param_2}-{filename}') )
 
 
 
