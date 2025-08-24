@@ -10,13 +10,11 @@ num_epochs = 8
 
 ##############################
 
-dataset = data.BlurDataset()
-train_dataset, test_dataset = data.train_test_split(dataset)
-train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=True)
+dataset = data.BlurDataset(training=False)
+eval_loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
 
-train_size = len(train_loader)
-test_size = len(test_loader)
+eval_size = len(eval_loader)
+print('miao')
 
 resnet18 = torch.load('models/resnet18.pth')
 GRNN = torch.load('models/GRNN.pth')
@@ -32,9 +30,9 @@ resnet18.eval()
 GRNN.eval()
 
 for epoch in range(num_epochs):
-    train_loss = 0.0
+    eval_loss = 0.0
     print(f'###\t\t  starting epoch n.{epoch+1}  \t\t###\n')
-    for i, (images, blur_types, param1, param2) in enumerate(test_loader):
+    for i, (images, blur_types, param1, param2) in enumerate(eval_loader):
         images = images.to(device)
         blur_types = blur_types.to(device)
         param1 = param1.to(device)
@@ -49,8 +47,8 @@ for epoch in range(num_epochs):
 
         # printing error every X batch
         if (i + 1) % 50 == 0:
-            print(f"Epoch [{epoch+1}/{num_epochs}], Step [{i+1}/{train_size}], Loss: {loss.item():.4f}")
+            print(f"Epoch [{epoch+1}/{num_epochs}], Step [{i+1}/{eval_size}], Loss: {loss.item():.4f}")
         #if (i == 2): break
 
-    avg_train_loss = train_loss / train_size
-    print(f"Epoch [{epoch+1}/{num_epochs}] evaluation completed. Average Loss: {avg_train_loss:.4f}")
+    avg_eval_loss = eval_loss / eval_size
+    print(f"Epoch [{epoch+1}/{num_epochs}] evaluation completed. Average Loss: {avg_eval_loss:.4f}")

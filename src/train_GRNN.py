@@ -11,8 +11,7 @@ batch_size = 1
 ###############################
 
 dataset = data.BlurDataset()
-train_dataset, test_dataset = data.train_test_split(dataset, 1, 0)
-data_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
 
 data_size = len(data_loader)
 

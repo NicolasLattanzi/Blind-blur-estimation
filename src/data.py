@@ -13,12 +13,11 @@ import utils
 class BlurDataset(Dataset):
 
     def __init__(self, training=True):
-        self.root = '../Blur_dataset'
         if training:
-            full_path = os.path.join(self.root)
-            self.images = [os.path.join(full_path, img) for img in os.listdir(full_path) if img.endswith('.jpg')]
+            self.path = '../Blur_dataset'
         else: # evaluation
-            pass
+            self.path = '../Blur_val_dataset'
+        self.images = [os.path.join(self.path, img) for img in os.listdir(self.path) if img.endswith('.jpg')]
         
         self.transform = transforms.Compose([
             transforms.Resize((224, 224)),
