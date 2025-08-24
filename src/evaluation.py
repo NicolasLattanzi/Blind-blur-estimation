@@ -5,7 +5,7 @@ import data
 
 ###### hyper parameters ########
 
-batch_size = 16
+batch_size = 4
 num_epochs = 8
 
 ##############################
@@ -43,12 +43,7 @@ for epoch in range(num_epochs):
         final_outputs = GRNN.forward(classif_outputs) # regression
         loss = loss_function(final_outputs, blur_parameters)
 
-        train_loss += loss.item()
-
-        # printing error every X batch
-        if (i + 1) % 50 == 0:
-            print(f"Epoch [{epoch+1}/{num_epochs}], Step [{i+1}/{eval_size}], Loss: {loss.item():.4f}")
-        #if (i == 2): break
+        eval_loss += loss.item()
 
     avg_eval_loss = eval_loss / eval_size
     print(f"Epoch [{epoch+1}/{num_epochs}] evaluation completed. Average Loss: {avg_eval_loss:.4f}")

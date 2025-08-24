@@ -36,8 +36,8 @@ class BlurDataset(Dataset):
         image = Image.open(img_path).convert('RGB')
         blur_type, blur_param1, blur_param2 = utils.blur_type_from_image_path(img_path)
         blur_type = torch.tensor( blur_type, dtype=torch.int64 )
-        blur_param1 = torch.tensor( blur_param1, dtype=torch.int32 )
-        blur_param2 = torch.tensor( blur_param2, dtype=torch.int32 )
+        blur_param1 = torch.tensor( blur_param1 / 128, dtype=torch.float32 ) #normalized kernel size
+        blur_param2 = torch.tensor( blur_param2 / 360, dtype=torch.float32 ) #normalized angle
 
         if self.transform:
             image = self.transform(image)
@@ -126,7 +126,7 @@ def generate_blurred_data(validation = False):
                 elif random_blur == 1:
                     blur_type = 1 # Motion Blur
                     blur_param_1 = random.randrange(16, size)  # blur size
-                    blur_param_2 = random.randrange(-360, 360) # motion angle
+                    blur_param_2 = random.randrange(0, 360) # motion angle
                     img_array = np.asarray(crop_img)
                     blurred_img = apply_motion_blur(img_array, size = blur_param_1, angle = blur_param_2)
                     blurred_img = Image.fromarray(blurred_img)
