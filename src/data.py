@@ -46,6 +46,8 @@ class BlurDataset(Dataset):
     
     # batch di immagini in input
     def augment_data(self, images):
+        if random.random() < 0.4: return images # probabilità del 10% di non cambiare l'immagine
+
         augmentation = transforms.Compose([
             transforms.RandomHorizontalFlip(),
             transforms.RandomRotation(degrees=(-10, 10)),
@@ -106,7 +108,8 @@ def generate_blurred_data(validation = False):
             w, h = img.size
             # dimensione del crop
             sizes = [64, 96, 128]
-            for size in sizes:
+            for _ in range(10):
+                size = sizes[ random.randrange(0,3) ]
                 if w <= size or h <= size: continue
 
                 #scelta randomica della zona dell'immagine per il crop

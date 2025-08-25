@@ -5,7 +5,7 @@ import data
 
 ###### hyper parameters ########
 
-batch_size = 4
+batch_size = 10
 num_epochs = 8
 
 ##############################
@@ -14,7 +14,6 @@ dataset = data.BlurDataset(training=False)
 eval_loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
 
 eval_size = len(eval_loader)
-print('miao')
 
 resnet18 = torch.load('models/resnet18.pth')
 GRNN = torch.load('models/GRNN.pth')
