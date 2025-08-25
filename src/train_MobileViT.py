@@ -1,8 +1,5 @@
-import tensorflow as tf
-from keras import layers as L
 import torch
 from torch.utils.data import DataLoader
-from torchvision import transforms
 import network
 import data
 
@@ -12,7 +9,7 @@ num_epochs = 8
 learning_rate = 0.001
 
 #dataset e separazione in train e test
-dataset = data.BlurDataset()
+dataset = data.BlurDataset(resize=128)
 train_dataset, test_dataset = data.train_test_split(dataset)
 train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=True)
@@ -25,11 +22,6 @@ model=network.MobileViT_XS()
 device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 model = model.to(device)
 
-transform = transforms.Compose([
-            transforms.Resize((128, 128)),  # forza ogni immagine a 128x128
-            transforms.ToTensor(),
-        ])
-
 print('//  starting training  //')
 
 loss_function = torch.nn.CrossEntropyLoss()
@@ -41,8 +33,6 @@ for epoch in range(num_epochs):
     print(f'###\t\t  starting epoch n.{epoch+1}  \t\t###\n')
     for i, (images, blur_types, _, _) in enumerate(train_loader):
         images = dataset.augment_data(images)
-        if(images.shape[-1]<128):
-            images=transform(images)
         images = images.to(device)
         blur_types = blur_types.to(device)
 

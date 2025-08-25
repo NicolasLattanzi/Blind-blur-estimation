@@ -12,7 +12,7 @@ import utils
 
 class BlurDataset(Dataset):
 
-    def __init__(self, training=True):
+    def __init__(self, resize=224, training=True):
         if training:
             self.path = '../Blur_dataset'
         else: # evaluation
@@ -20,7 +20,7 @@ class BlurDataset(Dataset):
         self.images = [os.path.join(self.path, img) for img in os.listdir(self.path) if img.endswith('.jpg')]
         
         self.transform = transforms.Compose([
-            transforms.Resize((224, 224)),
+            transforms.Resize((resize, resize)),
             transforms.ToTensor(),
             transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
         ])
