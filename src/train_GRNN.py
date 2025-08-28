@@ -7,7 +7,7 @@ import data
 '''
 parametri di blur che la GRNN deve trovare per ogni blur:
 
-Gaussian blur	|  Deviazione standard sigma
+Gaussian blur	|  (kernel size, e) Deviazione standard sigma
 Motion blur	    |  Lunghezza di movimento M, angolo ω
 Defocus blur	|  Raggio del disco di sfocatura r
 
@@ -24,17 +24,18 @@ data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
 
 data_size = len(data_loader)
 
-resnet18 = torch.load('models/resnet18.pth')
+model = torch.load('models/resnet18.pth')
+# model = torch.load('models/mobileVit.pth')
 # checking if gpu is available, otherwise cpu is used
 device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
-resnet18 = resnet18.to(device)
+model = model.to(device)
 
 ########################### preparing GRNN data ###########################
 
 GRNN_TRAIN_DATA = []
 GRNN_LABELS = []
 
-resnet18.eval()
+model.eval()
 # con la resnet18 caricata, scorro tutte le immagini di train e registro gli output in GRNN_TRAIN_DATA e GRNN_LABELS
 # le liste verranno usate per il mega hidden layer del modello
 for i, (images, _, param1, param2) in enumerate(data_loader):
@@ -42,7 +43,7 @@ for i, (images, _, param1, param2) in enumerate(data_loader):
     param1 = param1.to(device)
     param2 = param2.to(device)
 
-    outputs = resnet18(images)
+    outputs = model(images)
     outputs = [ out.item() for out in outputs[0] ]
     GRNN_TRAIN_DATA.append(outputs)
     GRNN_LABELS.append([param1[0].item(), param2[0].item()])

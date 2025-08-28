@@ -119,12 +119,13 @@ def generate_blurred_data(validation = False):
 
                 # random blurring
                 random_blur = int(random.random()*3)
-                blur_param_1 = random.randrange(5, 12, 2) # kernel size
-                blur_param_2 = 0 # foo
+                blur_param_1 = random.randrange(5, 12, 2)
+                blur_param_2 = 0
                 
                 if random_blur == 0:
                     blur_type = 0 # Gaussian Blur
-                    blur = transforms.GaussianBlur( kernel_size = blur_param_1 )
+                    blur_param_2 = random.uniform(0.1, 2.0)
+                    blur = transforms.GaussianBlur( kernel_size = blur_param_1, sigma=blur_param_2)
                     blurred_img = blur(crop_img)
                 elif random_blur == 1:
                     blur_type = 1 # Motion Blur
