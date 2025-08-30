@@ -7,7 +7,7 @@ import data
 '''
 parametri di blur che la GRNN deve trovare per ogni blur:
 
-Gaussian blur	|  (kernel size, e) Deviazione standard sigma
+Gaussian blur	|  Kernel size, Deviazione standard sigma
 Motion blur	    |  Lunghezza di movimento M, angolo ω
 Defocus blur	|  Raggio del disco di sfocatura r
 

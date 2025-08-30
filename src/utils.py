@@ -29,5 +29,5 @@ def printable_classif( classif_output ):
 # denormalizza l'output del modello GRNN
 def printable_regr( regr_output ):
     p1 = int(regr_output[0] * 128)
-    p2 = int(regr_output[1] * 360)
+    p2 = float(regr_output[1] * 360)
     return [p1, p2]

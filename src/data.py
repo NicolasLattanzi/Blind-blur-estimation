@@ -46,18 +46,20 @@ class BlurDataset(Dataset):
     
     # batch di immagini in input
     def augment_data(self, images):
-        if random.random() < 0.4: return images # probabilità del 10% di non cambiare l'immagine
+        if random.random() < 0.4: return images # probabilità del 40% di non cambiare l'immagine
 
         augmentation = transforms.Compose([
-            transforms.RandomHorizontalFlip(),
-            transforms.RandomRotation(degrees=(-10, 10)),
-            transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1),
+            transforms.RandomAffine(degrees=0, translate=(0.1, 0.1)),
+            transforms.ColorJitter(brightness=0.2, contrast=0.3, saturation=0.2, hue=0.15),
+            transforms.RandomErasing(p=0.5, scale=(0.02, 0.1), ratio=(0.3, 3.3)),
+            transforms.ToTensor(),
+            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
         ])
         outputs = []
         for img_tensor in images:
+            img_tensor.AddGaussianNoise(0., 0.05)
             img = transforms.ToPILImage()(img_tensor.cpu())
             img = augmentation(img)
-            img = transforms.ToTensor()(img)
             outputs.append(img)
 
         return torch.stack(outputs)
@@ -66,6 +68,14 @@ class BlurDataset(Dataset):
 def train_test_split(dataset, train=0.5, test=0.5):
     return torch.utils.data.random_split(dataset, [train, test])
 
+class AddGaussianNoise(object):
+    def __init__(self, mean=0., std=0.1):
+        self.mean = mean
+        self.std = std
+    def __call__(self, tensor):
+        return tensor + torch.randn_like(tensor) * self.std + self.mean
+    def __repr__(self):
+        return self.__class__.__name__ + f'(mean={self.mean}, std={self.std})'
 
 
 ################# GENERAZIONE DATA #####################################
@@ -105,6 +115,11 @@ def generate_blurred_data(validation = False):
 
             img = Image.open(os.path.join(folder_name, filename)).convert('RGB')
 
+            # denoising
+            img_np = np.array(img)[:, :, ::-1]
+            img_np = cv2.fastNlMeansDenoisingColored(img_np, None, 10, 10, 7, 21)
+            img = Image.fromarray(img_np[:, :, ::-1])
+
             w, h = img.size
             # dimensione del crop
             sizes = [64, 96, 128]
@@ -119,17 +134,16 @@ def generate_blurred_data(validation = False):
 
                 # random blurring
                 random_blur = int(random.random()*3)
-                blur_param_1 = random.randrange(5, 12, 2)
+                blur_param_1 = random.randrange(3, 10, 2) # kernel size
                 blur_param_2 = 0
                 
                 if random_blur == 0:
                     blur_type = 0 # Gaussian Blur
-                    blur_param_2 = random.uniform(0.1, 2.0)
-                    blur = transforms.GaussianBlur( kernel_size = blur_param_1, sigma=blur_param_2)
+                    blur_param_2 = round(random.uniform(0.1, 2.0), 4)
+                    blur = transforms.GaussianBlur( kernel_size = blur_param_1, sigma = blur_param_2)
                     blurred_img = blur(crop_img)
                 elif random_blur == 1:
                     blur_type = 1 # Motion Blur
-                    blur_param_1 = random.randrange(16, size)  # blur size
                     blur_param_2 = random.randrange(0, 360) # motion angle
                     img_array = np.asarray(crop_img)
                     blurred_img = apply_motion_blur(img_array, size = blur_param_1, angle = blur_param_2)
