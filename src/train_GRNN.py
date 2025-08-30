@@ -49,5 +49,7 @@ for i, (images, _, param1, param2) in enumerate(data_loader):
     GRNN_LABELS.append([param1[0].item(), param2[0].item()])
 
 GRNN = network.GRNN(GRNN_TRAIN_DATA, GRNN_LABELS)
-torch.save(GRNN, "models/GRNN.pth")
+
+#torch.save(GRNN, "models/GRNNResnet.pth")
+torch.save(GRNN, "models/GRNNVit.pth")
 
