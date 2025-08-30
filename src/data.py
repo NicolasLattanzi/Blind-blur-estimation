@@ -139,7 +139,7 @@ def generate_blurred_data(validation = False):
                 
                 if random_blur == 0:
                     blur_type = 0 # Gaussian Blur
-                    blur_param_2 = round(random.uniform(0.1, 2.0), 4)
+                    blur_param_2 = round(random.uniform(0.1, 2.0), 2)
                     blur = transforms.GaussianBlur( kernel_size = blur_param_1, sigma = blur_param_2)
                     blurred_img = blur(crop_img)
                 elif random_blur == 1:
