@@ -18,7 +18,7 @@ CNN=CNN.to(device)
 GRNNResnet=torch.load('models/GRNNResnet.pth')
 GRNNResnet=GRNNResnet.to(device)
 
-ViT=torch.load('models/movileVit.pth')
+ViT=torch.load('models/mobileVit.pth')
 ViT=ViT.to(device)
 
 GRNNViT=torch.load('models/GRNNVit.pth')
