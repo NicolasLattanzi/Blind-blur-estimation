@@ -17,7 +17,7 @@ class BlurDataset(Dataset):
             self.path = '../Blur_dataset'
         else: # evaluation
             self.path = '../Blur_val_dataset'
-        self.images = [os.path.join(self.path, img) for img in os.listdir(self.path) if img.endswith('.jpg')]
+        self.images = [os.path.join(self.path, img) for img in os.listdir(self.path) if img.endswith(('.jpg', '.jpeg', '.png', '.bmp', '.tif', '.tiff'))]
         
         self.transform = transforms.Compose([
             transforms.Resize((resize, resize)),

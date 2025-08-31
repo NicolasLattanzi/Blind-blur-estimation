@@ -36,7 +36,8 @@ class GRNN(nn.Module):
         weights_sum = weights.sum(dim=1, keepdim=True)          # shape (batch_size, 1)
 
         # media pesata
-        output = weighted_outputs / weights_sum
+        epsilon = 1e-8 # small number to avoid division by zero
+        output = weighted_outputs / (weights_sum + epsilon)
         return output
 
 

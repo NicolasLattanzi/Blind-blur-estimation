@@ -87,5 +87,5 @@ def single_eval():
         print(f"paramaters: {b1}  /  {b2}")
 
 
-single_eval()
-#complete_eval()
+#single_eval()
+complete_eval()
