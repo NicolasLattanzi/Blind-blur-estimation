@@ -25,7 +25,7 @@ class GRNN(nn.Module):
         # x shape: (batch_size, 3)
         # classif_data shape: (N, 3)
         # risultato: (batch_size, N)
-        diff = x.unsqueeze(1) - self.classif_data.unsqueeze(0) #forma: batch_size, N, 3
+        diff = x.unsqueeze(1).to(self.classif_data.device) - self.classif_data.unsqueeze(0) #forma: batch_size, N, 3
         dist_sq = torch.sum(diff**2, dim=2)
 
         # Calcola pesi (con formula gaussiana)
