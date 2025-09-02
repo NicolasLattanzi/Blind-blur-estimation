@@ -227,7 +227,7 @@ class MobileViT(nn.Module):
         self.mvit = nn.ModuleList([])
         self.mvit.append(MobileViTBlock(dims[0], L[0], channels[5], kernel_size, patch_size, int(dims[0]*2)))
         self.mvit.append(MobileViTBlock(dims[1], L[1], channels[7], kernel_size, patch_size, int(dims[1]*4)))
-        self.mvit.append(MobileViTBlock(dims[2], L[2], channels[9], kernel_size, patch_size, int(dims[2]*4)))
+        self.mvit.append(MobileViTBlock(dims[2], L[2], channels[9], kernel_size, (1,1), int(dims[2]*4)))
 
         self.conv2 = conv_1x1_bn(channels[-2], channels[-1])
 
@@ -256,7 +256,7 @@ class MobileViT(nn.Module):
         x = self.fc(x)
         return x
 
-def mobilevit_xs():
-    dims = [96, 120, 144]
-    channels = [16, 32, 48, 48, 64, 64, 80, 80, 96, 96, 384]
-    return MobileViT((128, 128), dims, channels, num_classes=3)
+def mobilevit_s():
+    dims = [144, 192, 240]
+    channels = [16, 32, 64, 64, 96, 96, 128, 128, 160, 160, 640]
+    return MobileViT((224, 224), dims, channels, num_classes=3)
