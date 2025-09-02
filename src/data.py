@@ -46,18 +46,18 @@ class BlurDataset(Dataset):
     
     # batch di immagini in input
     def augment_data(self, images):
-        if random.random() < 0.4: return images # probabilità del 40% di non cambiare l'immagine
+        if random.random() < 0.6: return images # probabilità del 40% di non cambiare l'immagine
 
         augmentation = transforms.Compose([
             transforms.RandomAffine(degrees=0, translate=(0.1, 0.1)),
             transforms.ColorJitter(brightness=0.2, contrast=0.3, saturation=0.2, hue=0.15),
-            transforms.RandomErasing(p=0.5, scale=(0.02, 0.1), ratio=(0.3, 3.3)),
             transforms.ToTensor(),
+            transforms.RandomErasing(p=0.5, scale=(0.02, 0.1), ratio=(0.3, 3.3)),
+            AddGaussianNoise(0., 0.05), 
             transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
         ])
         outputs = []
         for img_tensor in images:
-            img_tensor.AddGaussianNoise(0., 0.05)
             img = transforms.ToPILImage()(img_tensor.cpu())
             img = augmentation(img)
             outputs.append(img)
@@ -116,9 +116,9 @@ def generate_blurred_data(validation = False):
             img = Image.open(os.path.join(folder_name, filename)).convert('RGB')
 
             # denoising
-            img_np = np.array(img)[:, :, ::-1]
-            img_np = cv2.fastNlMeansDenoisingColored(img_np, None, 10, 10, 7, 21)
-            img = Image.fromarray(img_np[:, :, ::-1])
+            #img_np = np.array(img)[:, :, ::-1]
+            #img_np = cv2.fastNlMeansDenoisingColored(img_np, None, 10, 10, 7, 21)
+            #img = Image.fromarray(img_np[:, :, ::-1])
 
             w, h = img.size
             # dimensione del crop
