@@ -16,10 +16,10 @@ eval_loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
 
 eval_size = len(eval_loader)
 
-resnet18 = torch.load('models/resnet18.pth')
-GRNNResnet=torch.load('models/GRNNResnet.pth')
-ViT=torch.load('models/mobileVit.pth')
-GRNNViT=torch.load('models/GRNNVit.pth')
+resnet18 = torch.load('models/resnet18.pth', weights_only=False)
+GRNNResnet=torch.load('models/GRNNResnet.pth', weights_only=False)
+ViT=torch.load('models/movileVit3.pth', weights_only=False)
+GRNNViT=torch.load('models/GRNNVit.pth', weights_only=False)
 
 # checking if gpu is available, otherwise cpu is used
 device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
