@@ -37,9 +37,12 @@ GRNNViT.eval()
 
 def complete_eval():
     eval_loss = 0
+    gaussian_loss = gaussian_counter = 0
+    motion_loss = motion_counter = 0
     true_positives = false_positives = 0
     true_dict = {"Gaussian Blur" : 0, "Motion Blur" : 0, "Defocus Blur" : 0}
     false_dict = {"Gaussian Blur" : 0, "Motion Blur" : 0, "Defocus Blur" : 0}
+
     for i, (images, blur_types, param1, param2) in enumerate(eval_loader):
         images = images.to(device)
         blur_types = blur_types.to(device)
@@ -53,21 +56,32 @@ def complete_eval():
         eval_loss += loss.item()
 
         for j in range(len(classif_outputs)):
-            pred_string, pred_out = utils.printable_classif(classif_outputs[j])
-            if blur_types[j] == pred_out:
+            predicted_blur, predicted_out = utils.printable_classif(classif_outputs[j]) # blur name - number
+            if blur_types[j] == predicted_out:
                 true_positives += 1
-                true_dict[ pred_string ] += 1
+                true_dict[ predicted_blur ] += 1
+                if predicted_out == 0: # gaussian
+                    gaussian_loss += loss
+                    gaussian_counter += 1
+                elif predicted_out == 1: # motion
+                    motion_loss += loss
+                    motion_counter += 1
             else:
                 false_positives += 1
-                false_dict[ pred_string ] += 1
+                false_dict[ predicted_blur ] += 1
 
     avg_eval_loss = eval_loss / eval_size
     print(f"evaluation completed. Average Loss: {avg_eval_loss:.4f}")
+
     total = true_positives + false_positives
     print('positives: ', true_positives, ' / ', total)
     print(true_dict)
     print('error dict: ')
     print(false_dict)
+
+    print('GRNN error:')
+    print(f'average gaussian loss: {gaussian_loss / gaussian_counter}')
+    print(f'average motion loss: {motion_loss / motion_counter}')
 
 def single_eval():
     for i, (images, blur_types, param1, param2) in enumerate(eval_loader):
