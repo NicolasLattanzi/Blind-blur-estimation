@@ -17,7 +17,7 @@ eval_size = len(eval_loader)
 
 resnet18 = torch.load('models/resnet18.pth', map_location=torch.device('cpu'))
 GRNNResnet=torch.load('models/GRNNResnet.pth')
-ViT=torch.load('models/movileVit3.pth', map_location=torch.device('cpu'))
+ViT=torch.load('models/movileVit4.pth', map_location=torch.device('cpu'))
 GRNNViT=torch.load('models/GRNNVit.pth')
 
 # checking if gpu is available, otherwise cpu is used
@@ -43,32 +43,35 @@ def complete_eval():
     true_dict = {"Gaussian Blur" : 0, "Motion Blur" : 0, "Defocus Blur" : 0}
     false_dict = {"Gaussian Blur" : 0, "Motion Blur" : 0, "Defocus Blur" : 0}
 
-    for i, (images, blur_types, param1, param2) in enumerate(eval_loader):
-        images = images.to(device)
-        blur_types = blur_types.to(device)
-        param1 = param1.to(device)
-        param2 = param2.to(device)
-        blur_parameters = torch.tensor([[p1,p2] for p1,p2 in zip(param1, param2)], dtype=torch.float32)
+    with torch.no_grad():
+        for i, (images, blur_types, param1, param2) in enumerate(eval_loader):
+            images = images.to(device)
+            blur_types = blur_types.to(device)
+            param1 = param1.to(device)
+            param2 = param2.to(device)
+            blur_parameters = torch.tensor([[p1,p2] for p1,p2 in zip(param1, param2)], dtype=torch.float32)
 
-        classif_outputs = resnet18(images) # classification
-        final_outputs = GRNNResnet.forward(classif_outputs) # regression
-        loss = loss_function(final_outputs, blur_parameters)
-        eval_loss += loss.item()
+            classif_outputs = ViT(images) # classification
+            final_outputs = GRNNViT.forward(classif_outputs) # regression
+            loss = loss_function(final_outputs, blur_parameters)
+            eval_loss += loss.item()
 
-        for j in range(len(classif_outputs)):
-            predicted_blur, predicted_out = utils.printable_classif(classif_outputs[j]) # blur name - number
-            if blur_types[j] == predicted_out:
-                true_positives += 1
-                true_dict[ predicted_blur ] += 1
-                if predicted_out == 0: # gaussian
-                    gaussian_loss += loss
-                    gaussian_counter += 1
-                elif predicted_out == 1: # motion
-                    motion_loss += loss
-                    motion_counter += 1
-            else:
-                false_positives += 1
-                false_dict[ predicted_blur ] += 1
+            for j in range(len(classif_outputs)):
+                predicted_blur, predicted_out = utils.printable_classif(classif_outputs[j]) # blur name - number
+                if blur_types[j] == predicted_out:
+                    true_positives += 1
+                    true_dict[ predicted_blur ] += 1
+                    if predicted_out == 0: # gaussian
+                        gaussian_loss += loss
+                        gaussian_counter += 1
+                    elif predicted_out == 1: # motion
+                        motion_loss += loss
+                        motion_counter += 1
+                else:
+                    false_positives += 1
+                    false_dict[ predicted_blur ] += 1
+            
+            torch.cuda.empty_cache()
 
     avg_eval_loss = eval_loss / eval_size
     print(f"evaluation completed. Average Loss: {avg_eval_loss:.4f}")
