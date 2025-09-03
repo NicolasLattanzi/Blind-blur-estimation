@@ -25,10 +25,10 @@ def printable_classif( classif_output ):
         if classif_output[i] > blur_value:
             bt = i
             blur_value = classif_output[i]
-    return blur_types[bt]
+    return blur_types[bt], bt
 
 # denormalizza l'output del modello GRNN
 def printable_regr( regr_output ):
-    p1 = int(regr_output[0] * 128)
-    p2 = round(float(regr_output[1] * 360), 2)
+    p1 = int(regr_output[0] * 9)
+    p2 = round(float(regr_output[1] * 360), 3)
     return [p1, p2]

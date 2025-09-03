@@ -7,7 +7,6 @@ import utils
 ###### hyper parameters ########
 
 batch_size = 5
-num_epochs = 8
 
 ##############################
 
@@ -16,10 +15,10 @@ eval_loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
 
 eval_size = len(eval_loader)
 
-resnet18 = torch.load('models/resnet18.pth', weights_only=False)
-GRNNResnet=torch.load('models/GRNNResnet.pth', weights_only=False)
-ViT=torch.load('models/movileVit3.pth', weights_only=False)
-GRNNViT=torch.load('models/GRNNVit.pth', weights_only=False)
+resnet18 = torch.load('models/resnet18.pth', map_location=torch.device('cpu'))
+GRNNResnet=torch.load('models/GRNNResnet.pth')
+ViT=torch.load('models/movileVit3.pth', map_location=torch.device('cpu'))
+GRNNViT=torch.load('models/GRNNVit.pth')
 
 # checking if gpu is available, otherwise cpu is used
 device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
@@ -37,24 +36,38 @@ GRNNResnet.eval()
 GRNNViT.eval()
 
 def complete_eval():
-    for epoch in range(num_epochs):
-        eval_loss = 0.0
-        print(f'###\t\t  starting epoch n.{epoch+1}  \t\t###\n')
-        for i, (images, blur_types, param1, param2) in enumerate(eval_loader):
-            images = images.to(device)
-            blur_types = blur_types.to(device)
-            param1 = param1.to(device)
-            param2 = param2.to(device)
-            blur_parameters = torch.tensor([[p1,p2] for p1,p2 in zip(param1, param2)], dtype=torch.float32)
+    eval_loss = 0
+    true_positives = false_positives = 0
+    true_dict = {"Gaussian Blur" : 0, "Motion Blur" : 0, "Defocus Blur" : 0}
+    false_dict = {"Gaussian Blur" : 0, "Motion Blur" : 0, "Defocus Blur" : 0}
+    for i, (images, blur_types, param1, param2) in enumerate(eval_loader):
+        images = images.to(device)
+        blur_types = blur_types.to(device)
+        param1 = param1.to(device)
+        param2 = param2.to(device)
+        blur_parameters = torch.tensor([[p1,p2] for p1,p2 in zip(param1, param2)], dtype=torch.float32)
 
-            classif_outputs = resnet18(images) # classification
-            final_outputs = GRNNResnet.forward(classif_outputs) # regression
-            loss = loss_function(final_outputs, blur_parameters)
+        classif_outputs = resnet18(images) # classification
+        final_outputs = GRNNResnet.forward(classif_outputs) # regression
+        loss = loss_function(final_outputs, blur_parameters)
+        eval_loss += loss.item()
 
-            eval_loss += loss.item()
+        for j in range(len(classif_outputs)):
+            pred_string, pred_out = utils.printable_classif(classif_outputs[j])
+            if blur_types[j] == pred_out:
+                true_positives += 1
+                true_dict[ pred_string ] += 1
+            else:
+                false_positives += 1
+                false_dict[ pred_string ] += 1
 
-        avg_eval_loss = eval_loss / eval_size
-        print(f"Epoch [{epoch+1}/{num_epochs}] evaluation completed. Average Loss: {avg_eval_loss:.4f}")
+    avg_eval_loss = eval_loss / eval_size
+    print(f"evaluation completed. Average Loss: {avg_eval_loss:.4f}")
+    total = true_positives + false_positives
+    print('positives: ', true_positives, ' / ', total)
+    print(true_dict)
+    print('error dict: ')
+    print(false_dict)
 
 def single_eval():
     for i, (images, blur_types, param1, param2) in enumerate(eval_loader):
@@ -74,14 +87,14 @@ def single_eval():
         print(i)
         
         print('resnet - GRNN')
-        cout = utils.printable_classif(classif_outputs1[i])
+        cout, _ = utils.printable_classif(classif_outputs1[i])
         print(f"blur type: {utils.blur_types[ blur_types[i].item() ]}  /  {cout}")
         b1 = utils.printable_regr(blur_parameters[i])
         b2 = utils.printable_regr(final_outputs1[i])
         print(f"paramaters: {b1}  /  {b2}")
 
         print('ViT - GRNN')
-        cout = utils.printable_classif(classif_outputs2[i])
+        cout, _ = utils.printable_classif(classif_outputs2[i])
         print(f"blur type: {utils.blur_types[ blur_types[i].item() ]}  /  {cout}")
         b2 = utils.printable_regr(final_outputs2[i])
         print(f"paramaters: {b1}  /  {b2}")

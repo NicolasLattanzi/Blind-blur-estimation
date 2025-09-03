@@ -36,7 +36,7 @@ class BlurDataset(Dataset):
         image = Image.open(img_path).convert('RGB')
         blur_type, blur_param1, blur_param2 = utils.blur_type_from_image_path(img_path)
         blur_type = torch.tensor( blur_type, dtype=torch.int64 )
-        blur_param1 = torch.tensor( blur_param1 / 128, dtype=torch.float32 ) #normalized kernel size
+        blur_param1 = torch.tensor( blur_param1 / 9, dtype=torch.float32 ) #normalized kernel size
         blur_param2 = torch.tensor( blur_param2 / 360, dtype=torch.float32 ) #normalized angle
 
         if self.transform:
