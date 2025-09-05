@@ -4,7 +4,8 @@ from torch.utils.data import DataLoader
 import data
 import utils
 
-###### hyper parameters ########
+###### hyper parameters ########\
+#per resnet commentare riga 56!
 
 batch_size = 5
 
@@ -51,6 +52,8 @@ def complete_eval():
             param2 = param2.to(device)
             blur_parameters = torch.tensor([[p1,p2] for p1,p2 in zip(param1, param2)], dtype=torch.float32)
 
+
+            images=utils.to_frequency_domain(images)   #commentare questa riga per resnet!
             classif_outputs = ViT(images) # classification
             final_outputs = GRNNViT.forward(classif_outputs) # regression
             loss = loss_function(final_outputs, blur_parameters)
